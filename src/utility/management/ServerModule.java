@@ -10,6 +10,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -43,7 +44,6 @@ public class ServerModule {
                 }
                 if (key.isReadable()) {
                     System.out.println("Получен запрос. Исполняю...");
-                    buffer.flip();
                     String message;
                     try {
                         Request request = receiveRequest(buffer, key);
@@ -58,6 +58,7 @@ public class ServerModule {
                     MessageRequest response = new MessageRequest(message);
                     byte[] serializedResponse = serialize(response);
                     try (SocketChannel client = (SocketChannel) key.channel()) {
+                        buffer.flip();
                         buffer.clear();
                         client.write(buffer.put(serializedResponse));
                     }
@@ -75,6 +76,7 @@ public class ServerModule {
             return null;
         }
         else {
+            System.out.println(Arrays.toString(buffer.array()));
             return (Request) deserialize(buffer.array());
         }
     }
