@@ -4,12 +4,13 @@ import stored_classes.enums.Furnish;
 import stored_classes.enums.Transport;
 import stored_classes.enums.View;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Random;
 
-public class Flat implements Comparable<Flat> {
+public class Flat implements Comparable<Flat>, Serializable {
     private static final HashSet<Integer> usedIds = new HashSet<>();
     private final int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой

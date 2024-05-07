@@ -1,8 +1,9 @@
 package stored_classes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Coordinates {
+public class Coordinates implements Serializable {
     private Integer x; //Максимальное значение поля: 599, Поле не может быть null
     private Integer y; //Поле не может быть null
 

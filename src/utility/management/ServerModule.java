@@ -10,13 +10,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Set;
-
 public class ServerModule {
     private static ServerModule instance;
     private static final Invoker invoker = Invoker.getInstance();
+    private final static File file = new File("../data.csv");
     private ServerModule(){}
     public static ServerModule getInstance() {
         if (instance == null) {
@@ -30,7 +29,6 @@ public class ServerModule {
         serverSocket.bind(new InetSocketAddress("localhost", 5678));
         serverSocket.configureBlocking(false);
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
 
         while (true) {
             selector.select();
@@ -40,43 +38,45 @@ public class ServerModule {
                 SelectionKey key = iter.next();
                 if (key.isAcceptable()) {
                     register(selector, serverSocket);
-                    System.out.println("Клиент подключился");
+                    System.out.println("Клиент подключен");
                 }
                 if (key.isReadable()) {
                     System.out.println("Получен запрос. Исполняю...");
                     String message;
                     try {
-                        Request request = receiveRequest(buffer, key);
+                        Request request = receiveRequest(key);
                         if (request != null) {
                             message = invoker.executeCommand(request);
                         } else {
-                            message = "Команда не найдена!";
+                            break;
                         }
                     } catch (ClassNotFoundException e) {
                         message = "Команда не найдена!";
                     }
                     MessageRequest response = new MessageRequest(message);
                     byte[] serializedResponse = serialize(response);
+                    System.out.println(serializedResponse.length);
                     try (SocketChannel client = (SocketChannel) key.channel()) {
-                        buffer.flip();
-                        buffer.clear();
-                        client.write(buffer.put(serializedResponse));
+                        ByteBuffer buffer = ByteBuffer.wrap(serializedResponse);
+                        client.write(buffer);
                     }
                 }
                 iter.remove();
             }
         }
     }
-    private static Request receiveRequest(ByteBuffer buffer, SelectionKey key) throws IOException, ClassNotFoundException {
+    private static Request receiveRequest(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
+        ByteBuffer buffer = ByteBuffer.allocate(9192);
         int r = client.read(buffer);
-        if (r == -1 || new String(buffer.array()).trim().equals("exit")) {
+        if (r == -1) {
             client.close();
             System.out.println("Соединение с клиентом окончено");
+            invoker.getCollectionManager().saveCollection(file);
             return null;
         }
         else {
-            System.out.println(Arrays.toString(buffer.array()));
+            System.out.println(r);
             return (Request) deserialize(buffer.array());
         }
     }

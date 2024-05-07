@@ -1,8 +1,9 @@
 package stored_classes;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class House {
+public class House implements Serializable {
     private String name; //Поле может быть null
     private long year; //Значение поля должно быть больше 0
     private long numberOfFloors; //Значение поля должно быть больше 0

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Integer.parseInt;
 import static utility.auxiliary.Parser.parseFlat;
@@ -36,12 +37,9 @@ public class CollectionManager {
      * @param id id удаляемого элемента
      */
     public String removeById(int id) {
-        for (Flat flat : flats) {
-            if (flat.getId() == id) {
-                flats.remove(flat);
-                Flat.removeUsedId(id);
-                return "Квартира успешно удалена!";
-            }
+        if (flats.stream().anyMatch(flat -> flat.getId() == id)) {
+            flats.remove(flats.stream().filter(flat -> flat.getId() == id).findFirst());
+            return "Квартира успешно удалена!";
         }
         return "Квартира с данным id не найдена!";
     }
@@ -58,12 +56,9 @@ public class CollectionManager {
      * Выводит всю коллекцию в строковом представлении с порядковыми номерами элементов
      */
     public String show() {
-        int counter = 1;
+        AtomicInteger counter = new AtomicInteger(0);
         StringBuilder info = new StringBuilder();
-        for (Flat flat : flats) {
-            info.append(counter).append(") ").append(flat).append("\n");
-            counter++;
-        }
+        flats.stream().peek(flat -> counter.getAndIncrement()).forEach(flat -> info.append(counter).append(") ").append(flat).append("\n"));
         return info.toString();
     }
 
@@ -79,13 +74,7 @@ public class CollectionManager {
      * @param id id элемента, с которым проводится сравнение
      */
     public String removeGreater(int id){
-        boolean foundFlat = false;
-        for (Flat flat: flats) {
-            if (flat.getId() == id) {
-                foundFlat = true;
-                break;
-            }
-        }
+        boolean foundFlat = flats.stream().anyMatch(flat -> flat.getId() == id);
         if (!foundFlat) {
             return "Квартира с данным id не найдена!";
         } else {
@@ -103,13 +92,7 @@ public class CollectionManager {
      * @param id id элемента, с которым проводится сравнение
      */
     public String removeLower(int id){
-        boolean foundFlat = false;
-        for (Flat flat: flats) {
-            if (flat.getId() == id) {
-                foundFlat = true;
-                break;
-            }
-        }
+        boolean foundFlat = flats.stream().anyMatch(flat -> flat.getId() == id);
         if (!foundFlat) {
             return "Квартира с данным id не найдена!";
         } else {
@@ -151,10 +134,14 @@ public class CollectionManager {
      */
     public void saveCollection(File file) throws IOException {
         try (FileWriter writer = new FileWriter(file)) {
-            for (Flat flat : flats) {
-                writer.write(Unparser.FlatToCSV(flat));
+            flats.forEach(flat -> {
+                try {
+                    writer.write(Unparser.FlatToCSV(flat));
+                } catch (IOException e) {
+                    System.err.println("Ошибка при записи в файл!");
+                }
+            });
             }
-        }
     }
 
     /**
@@ -162,12 +149,7 @@ public class CollectionManager {
      * @param year Значение, с которым производится сравнение
      */
     public String countGreaterThanHouse(long year) {
-        int counter = 0;
-        for (Flat flat : flats) {
-            if (flat.getHouse().getYear() > year) {
-                counter++;
-            }
-        }
+        long counter = flats.stream().filter(flat -> flat.getHouse().getYear() > year).count();
             return "" + counter;
     }
     /**
@@ -176,11 +158,7 @@ public class CollectionManager {
      */
     public String filterLessThanFurnish(int quality) {
         StringBuilder info = new StringBuilder();
-        for (Flat flat : flats) {
-            if (flat.getFurnish().getQuality() < quality) {
-                info.append(flat).append("\n");
-            }
-        }
+        flats.stream().filter(flat -> flat.getFurnish().getQuality() < quality).forEach(flat -> info.append(flat).append("\n"));
         return info.toString();
     }
 
@@ -188,13 +166,11 @@ public class CollectionManager {
      * Обновляет поля элемента коллекции с указанным id в интерактивном режиме
      * @param id id элемента, с которым производится сравнение
      */
-    public String update(int id, Flat flat){
-        for (Flat flatSearch : flats) {
-            if (flatSearch.getId() == id) {
-                flats.remove(flatSearch);
-                flats.add(flat);
+    public String update(int id, Flat newflat){
+        if (flats.stream().anyMatch(flat -> flat.getId() == id)) {
+                flats.remove(flats.stream().filter(flat -> flat.getId() == id).findFirst());
+                flats.add(newflat);
                 return "Данные успешно обновлены!";
-            }
         }
         return "Квартира с данным id не найдена!";
     }
@@ -205,11 +181,7 @@ public class CollectionManager {
      */
     public String filterContainsName(String searchedString) {
         StringBuilder info = new StringBuilder();
-        for (Flat flat : flats) {
-            if (flat.getName().contains(searchedString)) {
-                info.append(flat);
-            }
-        }
+        flats.stream().filter(flat -> flat.getName().contains(searchedString)).forEach(flat -> info.append(flat).append("\n"));
         return info.toString();
     }
 }
