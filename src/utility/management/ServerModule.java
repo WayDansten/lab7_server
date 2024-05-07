@@ -11,11 +11,14 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Set;
 public class ServerModule {
     private static ServerModule instance;
+    private static Reader reader;
+    private static Scanner scanner;
     private static final Invoker invoker = Invoker.getInstance();
-    private final static File file = new File("../data.csv");
+    private final static File file = new File("data.csv");
     private ServerModule(){}
     public static ServerModule getInstance() {
         if (instance == null) {
@@ -24,13 +27,15 @@ public class ServerModule {
         return instance;
     }
     public void launch() throws IOException {
+        reader = new InputStreamReader(System.in);
+        scanner = new Scanner(reader);
         Selector selector = Selector.open();
         ServerSocketChannel serverSocket = ServerSocketChannel.open();
         serverSocket.bind(new InetSocketAddress("localhost", 5678));
         serverSocket.configureBlocking(false);
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
 
-        while (true) {
+        while (!handleAdminCommand()) {
             selector.select();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
@@ -68,7 +73,15 @@ public class ServerModule {
     private static Request receiveRequest(SelectionKey key) throws IOException, ClassNotFoundException {
         SocketChannel client = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(9192);
-        int r = client.read(buffer);
+        int r;
+        try {
+            r = client.read(buffer);
+        } catch (IOException e) {
+            client.close();
+            System.out.println("Соединение с клиентом окончено");
+            invoker.getCollectionManager().saveCollection(file);
+            return null;
+        }
         if (r == -1) {
             client.close();
             System.out.println("Соединение с клиентом окончено");
@@ -98,5 +111,22 @@ public class ServerModule {
         ObjectOutputStream os = new ObjectOutputStream(out);
         os.writeObject(object);
         return out.toByteArray();
+    }
+    private static boolean handleAdminCommand() throws IOException {
+        if (reader.ready()) {
+            String commandKey = scanner.next();
+            if (commandKey.equals("save")) {
+                invoker.getCollectionManager().saveCollection(file);
+                System.out.println("Коллекция успешно сохранена");
+                return false;
+            } else if (commandKey.equals("shutdown")) {
+                System.out.println("Завершение работы сервера...");
+                return true;
+            } else {
+                System.out.println("Неизвестная команда админа!");
+                return false;
+            }
+        }
+        return false;
     }
 }
