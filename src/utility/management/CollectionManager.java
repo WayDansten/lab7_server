@@ -1,5 +1,6 @@
 package utility.management;
 
+import exceptions.ErrorInFunctionException;
 import utility.auxiliary.Unparser;
 import utility.auxiliary.Validator;
 import stored_classes.Flat;
@@ -37,9 +38,12 @@ public class CollectionManager {
      * @param id id удаляемого элемента
      */
     public String removeById(int id) {
-        if (flats.stream().anyMatch(flat -> flat.getId() == id)) {
-            flats.remove(flats.stream().filter(flat -> flat.getId() == id).findFirst());
-            return "Квартира успешно удалена!";
+        for (Flat flat : flats) {
+            if (flat.getId() == id) {
+                flats.remove(flat);
+                Flat.removeUsedId(id);
+                return "Квартира успешно удалена!";
+            }
         }
         return "Квартира с данным id не найдена!";
     }
@@ -115,7 +119,7 @@ public class CollectionManager {
     public void fillCollection(BufferedInputStream bis){
         Scanner scanner = new Scanner(bis);
         while (scanner.hasNext()) {
-            String[] data = scanner.next().split(",");
+            String[] data = scanner.nextLine().split(",");
             try {
                 Flat flat = parseFlat(data);
                 Flat.addUsedId(parseInt(data[0]));
@@ -166,11 +170,14 @@ public class CollectionManager {
      * Обновляет поля элемента коллекции с указанным id в интерактивном режиме
      * @param id id элемента, с которым производится сравнение
      */
-    public String update(int id, Flat newflat){
-        if (flats.stream().anyMatch(flat -> flat.getId() == id)) {
-                flats.remove(flats.stream().filter(flat -> flat.getId() == id).findFirst());
-                flats.add(newflat);
-                return "Данные успешно обновлены!";
+    public String update(int id, Flat newFlat){
+        for (Flat flat : flats) {
+            if (flat.getId() == id) {
+                flats.remove(flat);
+                newFlat.setId(id);
+                flats.add(newFlat);
+                return "Поля квартиры успешно обновлены!";
+            }
         }
         return "Квартира с данным id не найдена!";
     }

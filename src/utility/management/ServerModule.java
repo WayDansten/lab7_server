@@ -29,14 +29,14 @@ public class ServerModule {
     public void launch() throws IOException {
         reader = new InputStreamReader(System.in);
         scanner = new Scanner(reader);
+        invoker.getCollectionManager().fillCollection(new BufferedInputStream(new FileInputStream(file)));
         Selector selector = Selector.open();
         ServerSocketChannel serverSocket = ServerSocketChannel.open();
         serverSocket.bind(new InetSocketAddress("localhost", 5678));
         serverSocket.configureBlocking(false);
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
-
         while (!handleAdminCommand()) {
-            selector.select();
+            selector.selectNow();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
             while (iter.hasNext()) {
@@ -60,7 +60,6 @@ public class ServerModule {
                     }
                     MessageRequest response = new MessageRequest(message);
                     byte[] serializedResponse = serialize(response);
-                    System.out.println(serializedResponse.length);
                     try (SocketChannel client = (SocketChannel) key.channel()) {
                         ByteBuffer buffer = ByteBuffer.wrap(serializedResponse);
                         client.write(buffer);
@@ -89,7 +88,6 @@ public class ServerModule {
             return null;
         }
         else {
-            System.out.println(r);
             return (Request) deserialize(buffer.array());
         }
     }

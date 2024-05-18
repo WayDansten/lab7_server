@@ -9,7 +9,6 @@ public class Main {
                 serverModule.launch();
             } catch (IOException e) {
                 System.err.println("Ошибка подключения!");
-                e.printStackTrace();
             }
     }
 }

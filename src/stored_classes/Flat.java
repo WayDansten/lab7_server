@@ -12,16 +12,16 @@ import java.util.Random;
 
 public class Flat implements Comparable<Flat>, Serializable {
     private static final HashSet<Integer> usedIds = new HashSet<>();
-    private final int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
+    private int id; //Значение поля должно быть больше 0, Значение этого поля должно быть уникальным, Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой
-    private Coordinates coordinates; //Поле не может быть null
-    private Date creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
+    private final Coordinates coordinates; //Поле не может быть null
+    private final Date creationDate; //Поле не может быть null, Значение этого поля должно генерироваться автоматически
     private double area; //Значение поля должно быть больше 0
     private Integer numberOfRooms; //Значение поля должно быть больше 0
     private Furnish furnish; //Поле не может быть null
     private View view; //Поле не может быть null
     private Transport transport; //Поле может быть null
-    private House house; //Поле не может быть null
+    private final House house; //Поле не может быть null
 
     public Flat(String name, Coordinates coordinates, double area, Integer numberOfRooms, Furnish furnish, View view, Transport transport, House house) {
         this.name = name;
@@ -34,12 +34,9 @@ public class Flat implements Comparable<Flat>, Serializable {
         this.transport = transport;
         this.house = house;
         int generatedId;
-        while (true) {
+        do {
             generatedId = new Random().nextInt(Integer.MAX_VALUE);
-            if (!usedIds.contains(generatedId)) {
-                break;
-            }
-        }
+        } while (usedIds.contains(generatedId));
         id = generatedId;
     }
 
@@ -88,6 +85,9 @@ public class Flat implements Comparable<Flat>, Serializable {
         return creationDate;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
     public void setName(String name) {
         this.name = name;
     }
