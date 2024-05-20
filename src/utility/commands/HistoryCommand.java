@@ -1,19 +1,19 @@
 package utility.commands;
 
 import utility.management.CollectionManager;
-import utility.management.Invoker;
+import utility.management.CommandExecutionManager;
 
 /**
  * Команда, выводящая имена последних 10 команд
  */
 
-public class HistoryCommand implements Command {
+public class HistoryCommand extends Command {
     CollectionManager cm;
     public HistoryCommand (CollectionManager cm) {
         this.cm = cm;
     }
     @Override
     public String execute(String... args) {
-        return Invoker.getInstance().getCommandHistory().toString();
+        return CommandExecutionManager.getInstance().getCommandHistory().toString();
     }
 }

@@ -6,7 +6,7 @@ import utility.management.CollectionManager;
  * Команда, выводящая информацию о коллекции
  */
 
-public class InfoCommand implements Command {
+public class InfoCommand extends Command {
     CollectionManager cm;
     public InfoCommand(CollectionManager cm) {
         this.cm = cm;

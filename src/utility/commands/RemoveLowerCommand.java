@@ -1,8 +1,10 @@
 package utility.commands;
 
-import exceptions.ErrorInFunctionException;
 import utility.management.CollectionManager;
-import utility.management.Invoker;
+import utility.management.DBQueryManager;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 import static java.lang.Integer.parseInt;
 
@@ -10,7 +12,7 @@ import static java.lang.Integer.parseInt;
  * Команда, удаляющая из коллекции все элементы, значение поля id которых меньше, чем значение id у элемента с указанным id
  */
 
-public class RemoveLowerCommand implements Command{
+public class RemoveLowerCommand extends Command {
     CollectionManager cm;
     public RemoveLowerCommand (CollectionManager cm) {
         this.cm = cm;
@@ -18,9 +20,13 @@ public class RemoveLowerCommand implements Command{
     @Override
     public String execute(String... args){
         try {
-            return cm.removeLower(parseInt(args[0]));
+            int id = parseInt(args[0]);
+            ArrayList<Integer> deletedIDs = DBQueryManager.getInstance().removeLower(id, userData.login());
+            return cm.removeLower(deletedIDs);
         } catch (NumberFormatException e) {
             return "Недопустимый тип данных!";
+        } catch (SQLException e) {
+            return "Ошибка при удалении данных из БД!";
         }
     }
 }

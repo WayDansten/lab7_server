@@ -6,7 +6,7 @@ import utility.management.CollectionManager;
  * Команда, выводящая коллекцию в строковом представлении
  */
 
-public class ShowCommand implements Command{
+public class ShowCommand extends Command {
     CollectionManager cm;
     public ShowCommand(CollectionManager cm) {
         this.cm = cm;

@@ -1,16 +1,13 @@
 package utility.commands;
 
-import exceptions.ErrorInFunctionException;
-import exceptions.WrongInputException;
 import utility.management.CollectionManager;
-import utility.management.Invoker;
 import stored_classes.enums.Furnish;
 
 /**
  * Команда, выводящая все элементы коллекции, значение поля furnish (константы Furnish.quality) которых меньше указанного
  */
 
-public class FilterLessThanFurnishCommand implements Command{
+public class FilterLessThanFurnishCommand extends Command {
     CollectionManager cm;
     public FilterLessThanFurnishCommand(CollectionManager cm) {
         this.cm = cm;

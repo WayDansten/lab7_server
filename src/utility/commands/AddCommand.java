@@ -1,16 +1,18 @@
 package utility.commands;
 
-import exceptions.ErrorInFunctionException;
 import stored_classes.Flat;
+import utility.auxiliary.UserData;
 import utility.management.CollectionManager;
-import utility.management.Invoker;
-import utility.builders.FlatBuilder;
+import utility.management.DBQueryManager;
+import utility.management.CommandExecutionManager;
+
+import java.sql.SQLException;
 
 /**
  * Команда, добавляющая элемент в коллекцию
  */
 
-public class AddCommand implements Command {
+public class AddCommand extends Command {
     CollectionManager cm;
     Flat addedFlat;
     public AddCommand(CollectionManager cm) {
@@ -22,7 +24,13 @@ public class AddCommand implements Command {
     }
     @Override
     public String execute(String... args){
-        Invoker.getInstance().getCollectionManager().add(addedFlat);
+        try {
+            int id = DBQueryManager.getInstance().insertFlat(addedFlat, userData);
+            addedFlat.setId(id);
+            CommandExecutionManager.getInstance().getCollectionManager().add(addedFlat);
+        } catch (SQLException e) {
+            return "Ошибка при добавлении данных в БД!";
+        }
         return "Квартира успешно добавлена!";
     }
 }

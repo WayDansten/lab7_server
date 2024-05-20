@@ -1,9 +1,10 @@
 package utility.commands;
 
-import exceptions.ErrorInFunctionException;
 import stored_classes.Flat;
 import utility.management.CollectionManager;
-import utility.management.Invoker;
+import utility.management.DBQueryManager;
+
+import java.sql.SQLException;
 
 import static java.lang.Integer.parseInt;
 
@@ -11,7 +12,7 @@ import static java.lang.Integer.parseInt;
  * Команда, обновляющая поля элемента коллекции с указанным id
  */
 
-public class UpdateCommand implements Command {
+public class UpdateCommand extends Command {
     CollectionManager cm;
     Flat updatedFlat;
     public UpdateCommand(CollectionManager cm) {
@@ -24,9 +25,13 @@ public class UpdateCommand implements Command {
     @Override
     public String execute(String... args){
         try {
-            return cm.update(parseInt(args[0]), updatedFlat);
+            int id = parseInt(args[0]);
+            DBQueryManager.getInstance().update(id, userData.login(), updatedFlat);
+            return cm.update(id, updatedFlat);
         } catch (NumberFormatException e) {
             return "Недопустимый тип данных!";
+        } catch (SQLException e) {
+            return "Ошибка при обновлении данных в БД!";
         }
     }
 }

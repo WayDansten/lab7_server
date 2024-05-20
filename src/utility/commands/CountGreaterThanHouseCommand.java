@@ -1,8 +1,6 @@
 package utility.commands;
 
-import exceptions.ErrorInFunctionException;
 import utility.management.CollectionManager;
-import utility.management.Invoker;
 
 import static java.lang.Long.parseLong;
 
@@ -10,7 +8,7 @@ import static java.lang.Long.parseLong;
  * Команда, считающая все элементы коллекции, у которых значение поля house.year больше, чем указанное значение
  */
 
-public class CountGreaterThanHouseCommand implements Command {
+public class CountGreaterThanHouseCommand extends Command {
     CollectionManager cm;
     public CountGreaterThanHouseCommand(CollectionManager cm) {
         this.cm = cm;

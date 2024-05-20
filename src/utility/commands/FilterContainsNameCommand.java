@@ -7,7 +7,7 @@ import utility.management.CollectionManager;
  * Команда, выводящая все элементы коллекции, поле name которых содержит введенную подстроку
  */
 
-public class FilterContainsNameCommand implements Command{
+public class FilterContainsNameCommand extends Command {
     CollectionManager cm;
     public FilterContainsNameCommand(CollectionManager cm) {
         this.cm = cm;

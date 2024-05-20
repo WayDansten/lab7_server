@@ -1,10 +1,11 @@
 package utility.management;
 
-import exceptions.ErrorInFunctionException;
 import utility.commands.*;
+import utility.requests.AuthorizationRequest;
 import utility.requests.Request;
 import utility.requests.RequestWithFlatCreation;
 
+import javax.naming.AuthenticationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,12 +15,11 @@ import java.util.NoSuchElementException;
  * Управляет командами и вводом/выводом
  */
 
-public class Invoker {
-    private static Invoker instance;
-    private boolean inScript = false;
-    public static Invoker getInstance() {
+public class CommandExecutionManager {
+    private static CommandExecutionManager instance;
+    public static CommandExecutionManager getInstance() {
         if (instance == null) {
-            instance = new Invoker();
+            instance = new CommandExecutionManager();
         }
         return instance;
     }
@@ -46,27 +46,41 @@ public class Invoker {
     /**
      * Исполняет одну введенную команду
      * @return Сигнал о конце ввода. Это может быть команда exit, конец файла или сигнал об окончании ввода
-     * @throws ErrorInFunctionException Выбрасывается, если произошло любое другое исключение во время исполнения скрипта
      */
 
     public String executeCommand(Request request){
         try {
-            String[] args = request.extract();
-            Command command = commands.get(args[0].strip().toLowerCase());
-            if (commandHistory.size() > 10) {
-                commandHistory.remove(0);
-            }
-            if (command == null) {
-                return "Несуществующая команда!";
-            } else {
-                commandHistory.add(args[0].strip().toLowerCase());
-                if (request instanceof RequestWithFlatCreation) {
-                    command.setExtraArgument(((RequestWithFlatCreation) request).getExtraArgument());
+            if (request instanceof AuthorizationRequest authRequest) {
+                if (authRequest.getRegistrationFlag()) {
+                    if (!ServerModule.getInstance().getUserData().containsKey(authRequest.extract()[0])) {
+                        ServerModule.getInstance().getUserData().put(authRequest.extract()[0], authRequest.extract()[1]);
+                        return "Авторизация успешна! Вы зарегистрировались.";
+                    }
+                    return "Пользователь с данным логином уже существует!";
                 }
-                if (args.length == 1) {
-                    return command.execute("");
+                if (ServerModule.getInstance().getUserData().get(authRequest.extract()[0]).equals(authRequest.extract()[1])) {
+                    return "Авторизация успешна! Вы вошли в систему.";
+                }
+                return "Введен неверный пароль!";
+            } else {
+                String[] args = request.extract();
+                Command command = commands.get(args[0].strip().toLowerCase());
+                if (commandHistory.size() > 10) {
+                    commandHistory.remove(0);
+                }
+                if (command == null) {
+                    return "Несуществующая команда!";
                 } else {
-                    return command.execute(args[1].strip());
+                    commandHistory.add(args[0].strip().toLowerCase());
+                    if (request instanceof RequestWithFlatCreation) {
+                        command.setExtraArgument(((RequestWithFlatCreation) request).getExtraArgument());
+                    }
+                    command.setUserData(request.getUserData());
+                    if (args.length == 1) {
+                        return command.execute("");
+                    } else {
+                        return command.execute(args[1].strip());
+                    }
                 }
             }
         } catch (NoSuchElementException e) {
@@ -83,8 +97,5 @@ public class Invoker {
 
     public CollectionManager getCollectionManager() {
         return cm;
-    }
-    public boolean getInScriptState() {
-        return inScript;
     }
 }

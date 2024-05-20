@@ -6,7 +6,7 @@ import utility.management.CollectionManager;
  * Команда, выводящая информацию по всем командам
  */
 
-public class HelpCommand implements Command {
+public class HelpCommand extends Command {
     CollectionManager cm;
     public HelpCommand(CollectionManager cm) {
         this.cm = cm;

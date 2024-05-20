@@ -1,35 +1,27 @@
 package utility.management;
 
-import exceptions.ErrorInFunctionException;
-import utility.auxiliary.Unparser;
 import utility.auxiliary.Validator;
 import stored_classes.Flat;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Scanner;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static java.lang.Integer.parseInt;
-import static utility.auxiliary.Parser.parseFlat;
 
 /**
  * Класс, управляющий коллекцией
  */
 
 public class CollectionManager {
-    TreeSet<Flat> flats = new TreeSet<>();
+    TreeSet<Flat> flats;
     Date initDate = new Date();
 
     /**
      * Добавляет элемент в коллекцию
      * @param flat Добавляемый элемент
      */
-    public void add(Flat flat) {
+    public synchronized void add(Flat flat) {
         flats.add(flat);
     }
 
@@ -37,7 +29,7 @@ public class CollectionManager {
      * Удаляет элемент из коллекции по его id
      * @param id id удаляемого элемента
      */
-    public String removeById(int id) {
+    public synchronized String removeById(int id) {
         for (Flat flat : flats) {
             if (flat.getId() == id) {
                 flats.remove(flat);
@@ -51,15 +43,14 @@ public class CollectionManager {
     /**
      * Очищает коллекцию
      */
-    public void clear() {
-        Flat.clearUsedIds();
-        flats.clear();
+    public synchronized void clearUser(ArrayList<Integer> deletedIDs) {
+        flats.removeIf(flat -> deletedIDs.contains(flat.getId()));
     }
 
     /**
      * Выводит всю коллекцию в строковом представлении с порядковыми номерами элементов
      */
-    public String show() {
+    public synchronized String show() {
         AtomicInteger counter = new AtomicInteger(0);
         StringBuilder info = new StringBuilder();
         flats.stream().peek(flat -> counter.getAndIncrement()).forEach(flat -> info.append(counter).append(") ").append(flat).append("\n"));
@@ -75,84 +66,37 @@ public class CollectionManager {
 
     /**
      * Удаляет из коллекции все элементы, значение поля id которых больше, чем значение id у элемента с указанным id
-     * @param id id элемента, с которым проводится сравнение
      */
-    public String removeGreater(int id){
-        boolean foundFlat = flats.stream().anyMatch(flat -> flat.getId() == id);
-        if (!foundFlat) {
-            return "Квартира с данным id не найдена!";
-        } else {
-            flats.removeIf(flat -> flat.getId() > id);
-            for (int i : Flat.getUsedIds()) {
-                if (i > id) {
-                    Flat.removeUsedId(i);
-                }
-            }
-            return "Удаление успешно!";
-        }
+    public synchronized String removeGreater(ArrayList<Integer> deletedIDs){
+        flats.removeIf(flat -> deletedIDs.contains(flat.getId()));
+        return "Удаление успешно!";
     }
     /**
      * Удаляет из коллекции все элементы, значение поля area которых меньше, чем значение area у элемента с указанным id
-     * @param id id элемента, с которым проводится сравнение
      */
-    public String removeLower(int id){
-        boolean foundFlat = flats.stream().anyMatch(flat -> flat.getId() == id);
-        if (!foundFlat) {
-            return "Квартира с данным id не найдена!";
-        } else {
-            flats.removeIf(flat -> flat.getId() < id);
-            for (int i : Flat.getUsedIds()) {
-                if (i < id) {
-                    Flat.removeUsedId(i);
-                } else {
-                    break;
-                }
-            }
-            return "Удаление успешно!";
-        }
+    public synchronized String removeLower(ArrayList<Integer> deletedIDs){
+        flats.removeIf(flat -> deletedIDs.contains(flat.getId()));
+        return "Удаление успешно!";
     }
 
     /**
      * Заполняет коллекцию значениями из файла в формате .csv
-     * @param bis Буферизированный поток данных из файла
      */
-    public void fillCollection(BufferedInputStream bis){
-        Scanner scanner = new Scanner(bis);
-        while (scanner.hasNext()) {
-            String[] data = scanner.nextLine().split(",");
-            try {
-                Flat flat = parseFlat(data);
-                Flat.addUsedId(parseInt(data[0]));
-                flats.add(flat);
-            } catch (NumberFormatException e) {
-                System.err.println("Некорректная строка данных! Квартира добавлена не будет");
-            }
-        Validator.validateAll(flats);
+    public void fillCollection(){
+        try {
+            flats = DBQueryManager.getInstance().createCollectionFromDB();
+            Validator.validateAll(flats);
+        } catch (SQLException e) {
+            System.err.println("Ошибка при заполнении коллекции из БД!");
+            e.printStackTrace();
         }
-    }
-
-    /**
-     * Сохраняет коллекцию в файл в формате .csv
-     * @param file Файл, в который производится сохранение
-     * @throws IOException Выбрасывается, если не хватает прав для записи в файл
-     */
-    public void saveCollection(File file) throws IOException {
-        try (FileWriter writer = new FileWriter(file)) {
-            flats.forEach(flat -> {
-                try {
-                    writer.write(Unparser.FlatToCSV(flat));
-                } catch (IOException e) {
-                    System.err.println("Ошибка при записи в файл!");
-                }
-            });
-            }
     }
 
     /**
      * Выводит количество элементов коллекции, значение поля year которых больше, чем указанное значение year
      * @param year Значение, с которым производится сравнение
      */
-    public String countGreaterThanHouse(long year) {
+    public synchronized String countGreaterThanHouse(long year) {
         long counter = flats.stream().filter(flat -> flat.getHouse().getYear() > year).count();
             return "" + counter;
     }
@@ -160,7 +104,7 @@ public class CollectionManager {
      * Выводит все элементы коллекции, значение поля furnish которых больше, чем указанное значение furnish (сравнение производится по целочисленным константам Furnish.quality)
      * @param quality Значение, с которым производится сравнение
      */
-    public String filterLessThanFurnish(int quality) {
+    public synchronized String filterLessThanFurnish(int quality) {
         StringBuilder info = new StringBuilder();
         flats.stream().filter(flat -> flat.getFurnish().getQuality() < quality).forEach(flat -> info.append(flat).append("\n"));
         return info.toString();
@@ -170,7 +114,7 @@ public class CollectionManager {
      * Обновляет поля элемента коллекции с указанным id в интерактивном режиме
      * @param id id элемента, с которым производится сравнение
      */
-    public String update(int id, Flat newFlat){
+    public synchronized String update(int id, Flat newFlat){
         for (Flat flat : flats) {
             if (flat.getId() == id) {
                 flats.remove(flat);
@@ -186,7 +130,7 @@ public class CollectionManager {
      * Выводит все элементы коллекции, поле name которых содержит введенную подстроку
      * @param searchedString Введенная подстрока
      */
-    public String filterContainsName(String searchedString) {
+    public synchronized String filterContainsName(String searchedString) {
         StringBuilder info = new StringBuilder();
         flats.stream().filter(flat -> flat.getName().contains(searchedString)).forEach(flat -> info.append(flat).append("\n"));
         return info.toString();

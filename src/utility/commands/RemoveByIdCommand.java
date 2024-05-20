@@ -1,8 +1,9 @@
 package utility.commands;
 
-import exceptions.ErrorInFunctionException;
 import utility.management.CollectionManager;
-import utility.management.Invoker;
+import utility.management.DBQueryManager;
+
+import java.sql.SQLException;
 
 import static java.lang.Integer.parseInt;
 
@@ -10,7 +11,7 @@ import static java.lang.Integer.parseInt;
  * Команда, удаляющая элемент из коллекции по его id
  */
 
-public class RemoveByIdCommand implements Command {
+public class RemoveByIdCommand extends Command {
     CollectionManager cm;
     public RemoveByIdCommand(CollectionManager cm) {
         this.cm = cm;
@@ -19,9 +20,13 @@ public class RemoveByIdCommand implements Command {
     public String execute(String... args){
         String input = args[0];
         try {
-            return cm.removeById(parseInt(input));
+            int id = parseInt(input);
+            DBQueryManager.getInstance().deleteById(id, userData.login());
+            return cm.removeById(id);
         } catch (NumberFormatException e) {
             return "Недопустимый тип данных!";
+        } catch (SQLException e) {
+            return "Ошибка при удалении данных из БД!";
         }
     }
 }

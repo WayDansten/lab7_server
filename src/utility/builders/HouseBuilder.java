@@ -2,7 +2,7 @@ package utility.builders;
 
 import exceptions.DataOutOfToleranceRegionException;
 import exceptions.ErrorInFunctionException;
-import utility.management.Invoker;
+import utility.management.CommandExecutionManager;
 import stored_classes.House;
 
 import java.util.Scanner;
@@ -22,10 +22,9 @@ public class HouseBuilder extends Builder<House> {
     /**
      * Собирает новый экземпляр класса House
      * @return Новый экземпляр класса House
-     * @throws ErrorInFunctionException Выбрасывается, если произошло любое другое исключение во время исполнения скрипта
      */
     @Override
-    public House build() throws ErrorInFunctionException {
+    public House build(){
         return new House(createName(), createYear(), createNumberOfFloors(), createNumberOfLifts());
     }
 
@@ -45,9 +44,8 @@ public class HouseBuilder extends Builder<House> {
     /**
      * Запрашивает значение поля year для класса House
      * @return значение year
-     * @throws ErrorInFunctionException Выбрасывается, если произошло любое другое исключение во время исполнения скрипта
      */
-    public long createYear() throws ErrorInFunctionException{
+    public long createYear(){
         long year;
         int MIN_YEAR = 0;
         while (true) {
@@ -60,14 +58,8 @@ public class HouseBuilder extends Builder<House> {
                 break;
             } catch (NumberFormatException e) {
                 System.out.println("Недопустимый формат данных! Y - целое число.");
-                if (Invoker.getInstance().getInScriptState()) {
-                    throw new ErrorInFunctionException("При исполнении скрипта произошла ошибка!");
-                }
             } catch (DataOutOfToleranceRegionException e) {
                 System.out.println(e.getMessage());
-                if (Invoker.getInstance().getInScriptState()) {
-                    throw new ErrorInFunctionException("При исполнении скрипта произошла ошибка!");
-                }
             }
         }
         return year;
@@ -75,9 +67,8 @@ public class HouseBuilder extends Builder<House> {
     /**
      * Запрашивает значение поля numberOfFloors для класса House
      * @return значение numberOfFloors
-     * @throws ErrorInFunctionException Выбрасывается, если произошло любое другое исключение во время исполнения скрипта
      */
-    public long createNumberOfFloors() throws ErrorInFunctionException {
+    public long createNumberOfFloors(){
         long numberOfFloors;
         int MIN_NUMBER_OF_FLOORS = 0;
         while (true) {
@@ -90,14 +81,8 @@ public class HouseBuilder extends Builder<House> {
                 break;
             } catch (NumberFormatException e) {
                 System.out.println("Недопустимый формат данных! N - целое число.");
-                if (Invoker.getInstance().getInScriptState()) {
-                    throw new ErrorInFunctionException("При исполнении скрипта произошла ошибка!");
-                }
             } catch (DataOutOfToleranceRegionException e) {
                 System.out.println(e.getMessage());
-                if (Invoker.getInstance().getInScriptState()) {
-                    throw new ErrorInFunctionException("При исполнении скрипта произошла ошибка!");
-                }
             }
         }
         return numberOfFloors;
@@ -105,9 +90,8 @@ public class HouseBuilder extends Builder<House> {
     /**
      * Запрашивает значение поля numberOfLifts для класса House
      * @return значение numberOfLifts
-     * @throws ErrorInFunctionException Выбрасывается, если произошло любое другое исключение во время исполнения скрипта
      */
-    public Integer createNumberOfLifts() throws ErrorInFunctionException{
+    public Integer createNumberOfLifts(){
         int numberOfLifts;
         int MIN_NUMBER_OF_LIFTS = 0;
         while (true) {
@@ -120,14 +104,8 @@ public class HouseBuilder extends Builder<House> {
                 break;
             } catch (NumberFormatException e) {
                 System.out.println("Недопустимый формат данных! N - целое число.");
-                if (Invoker.getInstance().getInScriptState()) {
-                    throw new ErrorInFunctionException("При исполнении скрипта произошла ошибка!");
-                }
             } catch (DataOutOfToleranceRegionException e) {
                 System.out.println(e.getMessage());
-                if (Invoker.getInstance().getInScriptState()) {
-                    throw new ErrorInFunctionException("При исполнении скрипта произошла ошибка!");
-                }
             }
         }
         return numberOfLifts;

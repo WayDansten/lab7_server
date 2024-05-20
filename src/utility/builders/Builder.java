@@ -7,5 +7,5 @@ import exceptions.ErrorInFunctionException;
  */
 
 public abstract class Builder<T> {
-    public abstract T build() throws ErrorInFunctionException;
+    public abstract T build();
 }
