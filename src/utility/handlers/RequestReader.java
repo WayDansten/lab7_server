@@ -40,6 +40,7 @@ public class RequestReader implements Runnable {
                 else {
                     try {
                         Request request;
+                        System.out.println("a");
                         try {
                             request = (Request) Serializer.deserialize(buffer.array());
                         } catch (ClassNotFoundException e) {
