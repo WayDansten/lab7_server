@@ -2,6 +2,7 @@ package utility.handlers;
 
 import utility.auxiliary.ExecutionTask;
 import utility.auxiliary.Serializer;
+import utility.auxiliary.Console;
 import utility.requests.MessageRequest;
 import utility.requests.Request;
 
@@ -9,14 +10,17 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 
 public class RequestReader implements Runnable {
     private final BlockingQueue<SelectionKey> readableKeys;
     private final BlockingQueue<ExecutionTask> executionTasks;
-    public RequestReader(BlockingQueue<SelectionKey> readableKeys, BlockingQueue<ExecutionTask> executionTasks) {
+    private final ArrayList<SelectionKey> processedKeys;
+    public RequestReader(BlockingQueue<SelectionKey> readableKeys, BlockingQueue<ExecutionTask> executionTasks, ArrayList<SelectionKey> processedKeys) {
         this.executionTasks = executionTasks;
         this.readableKeys = readableKeys;
+        this.processedKeys = processedKeys;
     }
     @Override
     public void run(){
@@ -35,18 +39,19 @@ public class RequestReader implements Runnable {
                 r = client.read(buffer);
                 if (r == -1) {
                     client.close();
-                    System.out.println("Соединение с клиентом окончено");
+                    Console.getInstance().printMessage("Соединение с клиентом окончено");
                 }
-                else {
+                else if (!processedKeys.contains(key) && r != 0) {
                     try {
                         Request request;
-                        System.out.println("a");
                         try {
+                            Console.getInstance().printMessage(String.valueOf(r));
                             request = (Request) Serializer.deserialize(buffer.array());
                         } catch (ClassNotFoundException e) {
                             request = new MessageRequest("Несуществующая команда!");
                         }
-                        System.out.println("Считано");
+                         Console.getInstance().printMessage("Считано");
+                        processedKeys.add(key);
                         executionTasks.put(new ExecutionTask(request, key));
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -58,7 +63,7 @@ public class RequestReader implements Runnable {
                 } catch (IOException ex) {
                     System.out.print("");
                 }
-                System.out.println("Соединение с клиентом окончено");
+                Console.getInstance().printMessage("Соединение с клиентом окончено");
             }
         }
     }

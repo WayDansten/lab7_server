@@ -1,8 +1,7 @@
 package utility.builders;
 
 import exceptions.DataOutOfToleranceRegionException;
-import exceptions.ErrorInFunctionException;
-import utility.management.CommandExecutionManager;
+import utility.auxiliary.Console;
 import stored_classes.House;
 
 import java.util.Scanner;
@@ -34,7 +33,7 @@ public class HouseBuilder extends Builder<House> {
      */
     public String createName() {
         String name;
-        System.out.println("Введите название дома (оставьте строку пустой для значения null)");
+        Console.getInstance().printMessage("Введите название дома (оставьте строку пустой для значения null)");
         name = receiver.next().replaceAll("[\r\n]", "");
         if (name.isEmpty()) {
             name = null;
@@ -49,7 +48,7 @@ public class HouseBuilder extends Builder<House> {
         long year;
         int MIN_YEAR = 0;
         while (true) {
-            System.out.println("Введите целое число - год постройки дома Y (N > " + MIN_YEAR + "):");
+            Console.getInstance().printMessage("Введите целое число - год постройки дома Y (N > " + MIN_YEAR + "):");
             try {
                 year = parseLong(receiver.next().strip());
                 if (year <= MIN_YEAR) {
@@ -57,9 +56,9 @@ public class HouseBuilder extends Builder<House> {
                 }
                 break;
             } catch (NumberFormatException e) {
-                System.out.println("Недопустимый формат данных! Y - целое число.");
+                Console.getInstance().printMessage("Недопустимый формат данных! Y - целое число.");
             } catch (DataOutOfToleranceRegionException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return year;
@@ -72,7 +71,7 @@ public class HouseBuilder extends Builder<House> {
         long numberOfFloors;
         int MIN_NUMBER_OF_FLOORS = 0;
         while (true) {
-            System.out.println("Введите целое число - количество этажей в доме N (N > " + MIN_NUMBER_OF_FLOORS + "):");
+            Console.getInstance().printMessage("Введите целое число - количество этажей в доме N (N > " + MIN_NUMBER_OF_FLOORS + "):");
             try {
                 numberOfFloors = parseLong(receiver.next().strip());
                 if (numberOfFloors <= MIN_NUMBER_OF_FLOORS) {
@@ -80,9 +79,9 @@ public class HouseBuilder extends Builder<House> {
                 }
                 break;
             } catch (NumberFormatException e) {
-                System.out.println("Недопустимый формат данных! N - целое число.");
+                Console.getInstance().printMessage("Недопустимый формат данных! N - целое число.");
             } catch (DataOutOfToleranceRegionException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return numberOfFloors;
@@ -95,7 +94,7 @@ public class HouseBuilder extends Builder<House> {
         int numberOfLifts;
         int MIN_NUMBER_OF_LIFTS = 0;
         while (true) {
-            System.out.println("Введите целое число - количество лифтов в доме N (N > " + MIN_NUMBER_OF_LIFTS + "):");
+            Console.getInstance().printMessage("Введите целое число - количество лифтов в доме N (N > " + MIN_NUMBER_OF_LIFTS + "):");
             try {
                 numberOfLifts = parseInt(receiver.next().strip());
                 if (numberOfLifts <= MIN_NUMBER_OF_LIFTS) {
@@ -103,9 +102,9 @@ public class HouseBuilder extends Builder<House> {
                 }
                 break;
             } catch (NumberFormatException e) {
-                System.out.println("Недопустимый формат данных! N - целое число.");
+                Console.getInstance().printMessage("Недопустимый формат данных! N - целое число.");
             } catch (DataOutOfToleranceRegionException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return numberOfLifts;

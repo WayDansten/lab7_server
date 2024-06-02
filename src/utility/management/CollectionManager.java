@@ -1,6 +1,7 @@
 package utility.management;
 
 import utility.auxiliary.Validator;
+import utility.auxiliary.Console;
 import stored_classes.Flat;
 
 import java.sql.SQLException;
@@ -87,7 +88,7 @@ public class CollectionManager {
             flats = DBQueryManager.getInstance().createCollectionFromDB();
             Validator.validateAll(flats);
         } catch (SQLException e) {
-            System.err.println("Ошибка при заполнении коллекции из БД!");
+            Console.getInstance().printError("Ошибка при заполнении коллекции из БД!");
             e.printStackTrace();
         }
     }
