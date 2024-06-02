@@ -57,9 +57,10 @@ public class CommandExecutionManager {
                         return "Авторизация успешна! Вы зарегистрировались.";
                     }
                     return "Пользователь с данным логином уже существует!";
-                }
-                if (ServerModule.getInstance().getUserData().get(authRequest.extract()[0]).equals(authRequest.extract()[1])) {
-                    return "Авторизация успешна! Вы вошли в систему.";
+                } else if (ServerModule.getInstance().getUserData().containsKey(authRequest.extract()[0])) {
+                    if (ServerModule.getInstance().getUserData().get(authRequest.extract()[0]).equals(authRequest.extract()[1])) {
+                        return "Авторизация успешна! Вы вошли в систему.";
+                    }
                 }
                 return "Введен неверный пароль!";
             } else {

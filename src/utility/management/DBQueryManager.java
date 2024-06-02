@@ -17,19 +17,25 @@ import java.util.TreeSet;
 public class DBQueryManager {
     private static DBQueryManager instance;
     private Connection connection;
-    private DBQueryManager(){}
+
+    private DBQueryManager() {
+    }
+
     public static DBQueryManager getInstance() {
         if (instance == null) {
             instance = new DBQueryManager();
         }
         return instance;
     }
+
     private void setConnection(Connection connection) {
         this.connection = connection;
     }
+
     public void setInstanceConnection(Connection connection) {
         instance.setConnection(connection);
     }
+
     private synchronized int insertCoordinates(Coordinates coordinates) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("INSERT INTO COORDINATES (X, Y) VALUES (?, ?) RETURNING ID;");
         statement.setInt(1, coordinates.getX());
@@ -40,7 +46,8 @@ public class DBQueryManager {
         }
         return result.getInt(1);
     }
-    public void prepareDB() throws SQLException{
+
+    public void prepareDB() throws SQLException {
         PreparedStatement dbPreparationQuery = connection.prepareStatement(
                 "CREATE TABLE IF NOT EXISTS COORDINATES (" +
                         "ID SERIAL PRIMARY KEY," +
@@ -68,6 +75,7 @@ public class DBQueryManager {
         );
         dbPreparationQuery.executeUpdate();
     }
+
     private synchronized int insertHouse(House house) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("INSERT INTO HOUSES (NAME, YEAR, NUMBER_OF_FLOORS, NUMBER_OF_LIFTS) VALUES (?, ?, ?, ?) RETURNING ID;");
         statement.setString(1, house.getName());
@@ -80,10 +88,11 @@ public class DBQueryManager {
         }
         return result.getInt(1);
     }
+
     public synchronized int insertFlat(Flat flat, UserData userData) throws SQLException {
         int coordinatesID = insertCoordinates(flat.getCoordinates());
         int houseID = insertHouse(flat.getHouse());
-        PreparedStatement statement = connection.prepareStatement("INSERT INTO FLATS (NAME, COORDINATES_ID, CREATION_DATE, AREA, NUMBER_OF_ROOMS, FURNISH, VIEW, TRANSPORT, HOUSE_ID, DB_USER, PASSWORD) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        PreparedStatement statement = connection.prepareStatement("INSERT INTO FLATS (NAME, COORDINATES_ID, CREATION_DATE, AREA, NUMBER_OF_ROOMS, FURNISH, VIEW, TRANSPORT, HOUSE_ID, DB_USER, PASSWORD) VALUES (?, ?, ?, ?, ?, CAST(? AS FURNISH), CAST(? AS VIEW), CAST(? AS TRANSPORT), ?, ?, ?)");
         statement.setString(1, flat.getName());
         statement.setInt(2, coordinatesID);
         statement.setTimestamp(3, Timestamp.from(flat.getCreationDate().toInstant()));
@@ -101,7 +110,8 @@ public class DBQueryManager {
         }
         return result.getInt(1);
     }
-    public synchronized int deleteById(int id, String username) throws SQLException{
+
+    public synchronized int deleteById(int id, String username) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("DELETE FROM FLATS WHERE ID = ? AND DB_USER = ? RETURNING ID;");
         statement.setInt(1, id);
         statement.setString(2, username);
@@ -111,7 +121,8 @@ public class DBQueryManager {
         }
         return result.getInt(1);
     }
-    public synchronized ArrayList<Integer> deleteByUser(String username) throws SQLException{
+
+    public synchronized ArrayList<Integer> deleteByUser(String username) throws SQLException {
         ArrayList<Integer> deletedIDs = new ArrayList<>();
         PreparedStatement statement = connection.prepareStatement("DELETE FROM FLATS WHERE DB_USER = ? RETURNING ID;");
         statement.setString(1, username);
@@ -124,7 +135,8 @@ public class DBQueryManager {
         }
         return deletedIDs;
     }
-    public synchronized ArrayList<Integer> removeGreater(int id, String username) throws SQLException{
+
+    public synchronized ArrayList<Integer> removeGreater(int id, String username) throws SQLException {
         ArrayList<Integer> deletedIDs = new ArrayList<>();
         PreparedStatement statement = connection.prepareStatement("DELETE FROM FLATS WHERE ID > ? AND DB_USER = ? RETURNING ID;");
         statement.setInt(1, id);
@@ -138,7 +150,8 @@ public class DBQueryManager {
         }
         return deletedIDs;
     }
-    public synchronized ArrayList<Integer> removeLower(int id, String username) throws SQLException{
+
+    public synchronized ArrayList<Integer> removeLower(int id, String username) throws SQLException {
         ArrayList<Integer> deletedIDs = new ArrayList<>();
         PreparedStatement statement = connection.prepareStatement("DELETE FROM FLATS WHERE ID < ? AND DB_USER = ? RETURNING ID;");
         statement.setInt(1, id);
@@ -152,6 +165,7 @@ public class DBQueryManager {
         }
         return deletedIDs;
     }
+
     public synchronized int update(int id, String username, Flat flat) throws SQLException {
         PreparedStatement statement = connection.prepareStatement("SELECT COORDINATES_ID, HOUSE_ID FROM FLATS WHERE ID = ?;");
         statement.setInt(1, id);
@@ -193,16 +207,18 @@ public class DBQueryManager {
         }
         return id;
     }
-    public TreeSet<Flat> createCollectionFromDB() throws SQLException{
+
+    public TreeSet<Flat> createCollectionFromDB() throws SQLException {
         PreparedStatement statement = connection.prepareStatement("SELECT * FROM FLATS INNER JOIN COORDINATES ON (FLATS.COORDINATES_ID = COORDINATES.ID) INNER JOIN HOUSES ON (FLATS.HOUSE_ID = HOUSES.ID);");
         ResultSet result = statement.executeQuery();
         TreeSet<Flat> flats = new TreeSet<>();
         while (result.next()) {
-            Coordinates coordinates = new Coordinates(result.getInt(12), result.getInt(13));
-            House house = new House(result.getString(15), result.getLong(16), result.getLong(17), result.getInt(18));
-            flats.add(new Flat(result.getInt(1), result.getString(2), coordinates,
-                    result.getTimestamp(4), result.getDouble(5), result.getInt(6),
-                    Furnish.naming.get(result.getString(7)), View.naming.get(result.getString(8)), Transport.naming.get(result.getString(9)), house));
+            Coordinates coordinates = new Coordinates(result.getInt("X"), result.getInt("Y"));
+            House house = new House(result.getString("NAME"), result.getLong("YEAR"), result.getLong("NUMBER_OF_FLOORS"), result.getInt("NUMBER_OF_LIFTS"));
+            flats.add(new Flat(result.getInt("ID"), result.getString(2), coordinates,
+                    result.getTimestamp("CREATION_DATE"), result.getDouble("AREA"), result.getInt("NUMBER_OF_ROOMS"),
+                    Furnish.naming.get(result.getString("FURNISH")), View.naming.get(result.getString("VIEW")), Transport.naming.get(result.getString("TRANSPORT")), house));
+            ServerModule.getInstance().getUserData().put(result.getString("DB_USER"), result.getString("PASSWORD"));
         }
         return flats;
     }

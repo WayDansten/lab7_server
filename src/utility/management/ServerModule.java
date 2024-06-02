@@ -3,6 +3,7 @@ package utility.management;
 import utility.auxiliary.ExecutionTask;
 import utility.auxiliary.SendingTask;
 import utility.auxiliary.Serializer;
+import utility.auxiliary.Console;
 import utility.handlers.RequestExecutor;
 import utility.handlers.RequestReader;
 import utility.handlers.RequestSender;
@@ -30,7 +31,9 @@ public class ServerModule {
     private final static File file = new File("data.csv");
     private final static HashMap<String, String> userData = new HashMap<>();
     private final static int NUMBER_OF_THREADS = 50;
-    private final ExecutorService pool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    private final ExecutorService readPool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    private final ExecutorService sendPool = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    ForkJoinPool executionPool = ForkJoinPool.commonPool();
     private ServerModule(){}
     public static ServerModule getInstance() {
         if (instance == null) {
@@ -42,6 +45,8 @@ public class ServerModule {
         try {
             BlockingQueue<ExecutionTask> executionTasks = new LinkedBlockingQueue<>();
             BlockingQueue<SendingTask> sendingTasks = new LinkedBlockingQueue<>();
+            BlockingQueue<SelectionKey> readableKeys = new LinkedBlockingQueue<>();
+            ArrayList<SelectionKey> processedKeys = new ArrayList<>();
             reader = new InputStreamReader(System.in);
             scanner = new Scanner(reader);
             Class.forName("org.postgresql.Driver");
@@ -58,34 +63,32 @@ public class ServerModule {
                 selector.selectNow();
                 Set<SelectionKey> selectedKeys = selector.selectedKeys();
                 Iterator<SelectionKey> iter = selectedKeys.iterator();
-                BlockingQueue<SelectionKey> readableKeys = new LinkedBlockingQueue<>();
                 while (iter.hasNext()) {
                     SelectionKey key = iter.next();
                     if (key.isAcceptable()) {
                         register(selector, serverSocket);
-                        System.out.println("Клиент подключен");
+                        Console.getInstance().printMessage("Клиент подключен");
                     }
-                    if (key.isReadable()) {
+                    if (key.isReadable() && !readableKeys.contains(key)) {
                         readableKeys.add(key);
                     }
                     iter.remove();
                 }
                 for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-                    pool.execute(new RequestReader(readableKeys, executionTasks));
+                    readPool.execute(new RequestReader(readableKeys, executionTasks, processedKeys));
                 }
-                ForkJoinPool executionPool = ForkJoinPool.commonPool();
                 executionPool.execute(new RequestExecutor(executionTasks, sendingTasks, commandManager));
                 for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-                    pool.execute(new RequestSender(sendingTasks));
+                    sendPool.execute(new RequestSender(sendingTasks, processedKeys));
                 }
                 if (handleAdminCommand()) {
                     break;
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Ошибка соединения с базой данных!");
+            Console.getInstance().printError("Ошибка соединения с базой данных!");
         } catch (ClassNotFoundException e) {
-            System.err.println("Драйвер не найден!");
+            Console.getInstance().printError("Драйвер не найден!");
         }
     }
     private static Request receiveRequest(SelectionKey key) throws IOException, ClassNotFoundException {
@@ -96,12 +99,12 @@ public class ServerModule {
             r = client.read(buffer);
         } catch (IOException e) {
             client.close();
-            System.out.println("Соединение с клиентом окончено");
+            Console.getInstance().printMessage("Соединение с клиентом окончено");
             return null;
         }
         if (r == -1) {
             client.close();
-            System.out.println("Соединение с клиентом окончено");
+            Console.getInstance().printMessage("Соединение с клиентом окончено");
             return null;
         }
         else {
@@ -120,10 +123,10 @@ public class ServerModule {
         if (reader.ready()) {
             String commandKey = scanner.next();
             if (commandKey.equals("shutdown")) {
-                System.out.println("Завершение работы сервера...");
+                Console.getInstance().printMessage("Завершение работы сервера...");
                 return true;
             } else {
-                System.out.println("Неизвестная команда админа!");
+                Console.getInstance().printMessage("Неизвестная команда админа!");
                 return false;
             }
         }

@@ -3,7 +3,7 @@ package utility.builders;
 import exceptions.DataOutOfToleranceRegionException;
 import exceptions.ErrorInFunctionException;
 import exceptions.WrongInputException;
-import utility.management.CommandExecutionManager;
+import utility.auxiliary.Console;
 import stored_classes.Flat;
 import stored_classes.enums.Furnish;
 import stored_classes.enums.Transport;
@@ -40,7 +40,7 @@ public class FlatBuilder extends Builder<Flat> {
         double s;
         int MIN_AREA = 0;
         while (true) {
-            System.out.println("Введите вещественное число - площадь квартиры S (S > " + MIN_AREA + "):");
+            Console.getInstance().printMessage("Введите вещественное число - площадь квартиры S (S > " + MIN_AREA + "):");
             try {
                 s = parseDouble(receiver.next().strip());
                 if (s <= MIN_AREA) {
@@ -48,9 +48,9 @@ public class FlatBuilder extends Builder<Flat> {
                 }
                 break;
             } catch (NumberFormatException e) {
-                System.out.println("Недопустимый формат данных! S - вещественное число.");
+                Console.getInstance().printMessage("Недопустимый формат данных! S - вещественное число.");
             } catch (DataOutOfToleranceRegionException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return s;
@@ -63,7 +63,7 @@ public class FlatBuilder extends Builder<Flat> {
         int numberOfRooms;
         int MIN_NUMBER_OF_ROOMS = 0;
         while (true) {
-            System.out.println("Введите целое число - количество комнат в квартире N (N > " + MIN_NUMBER_OF_ROOMS + "):");
+            Console.getInstance().printMessage("Введите целое число - количество комнат в квартире N (N > " + MIN_NUMBER_OF_ROOMS + "):");
             try {
                 numberOfRooms = parseInt(receiver.next().strip());
                 if (numberOfRooms <= MIN_NUMBER_OF_ROOMS) {
@@ -71,9 +71,9 @@ public class FlatBuilder extends Builder<Flat> {
                 }
                 break;
             } catch (NumberFormatException e) {
-                System.out.println("Недопустимый формат данных! N - целое число.");
+                Console.getInstance().printMessage("Недопустимый формат данных! N - целое число.");
             } catch (DataOutOfToleranceRegionException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return numberOfRooms;
@@ -85,7 +85,7 @@ public class FlatBuilder extends Builder<Flat> {
     public String createName(){
         String name;
         while (true) {
-            System.out.println("Введите название квартиры (название - не пустая строка)");
+            Console.getInstance().printMessage("Введите название квартиры (название - не пустая строка)");
             try {
                 name = receiver.next().replaceAll("[\r\n]", "");
                 if (name.isEmpty()) {
@@ -93,7 +93,7 @@ public class FlatBuilder extends Builder<Flat> {
                 }
                 break;
             } catch (WrongInputException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return name;
@@ -106,8 +106,8 @@ public class FlatBuilder extends Builder<Flat> {
     public Furnish createFurnish(){
         Furnish furnish;
         while (true) {
-            System.out.println("Введите вид мебели в квартире (перечень приведен ниже):");
-            System.out.println("""
+            Console.getInstance().printMessage("Введите вид мебели в квартире (перечень приведен ниже):");
+            Console.getInstance().printMessage("""
                     NONE - мебель отсутствует
                     LITTLE - небольшое количество мебели
                     BAD - низкокачественная мебель
@@ -121,7 +121,7 @@ public class FlatBuilder extends Builder<Flat> {
                 }
                 break;
             } catch (WrongInputException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return furnish;
@@ -133,8 +133,8 @@ public class FlatBuilder extends Builder<Flat> {
     public Transport createTransport(){
         Transport transport;
         while (true) {
-            System.out.println("Введите степень транспортной доступности квартиры (перечень приведен ниже):");
-            System.out.println("""
+            Console.getInstance().printMessage("Введите степень транспортной доступности квартиры (перечень приведен ниже):");
+            Console.getInstance().printMessage("""
                     FEW - очень малое количество общественного транспорта
                     LITTLE - небольшое количество общественного транспорта
                     NORMAL - среднее количество общественного транспорта
@@ -147,7 +147,7 @@ public class FlatBuilder extends Builder<Flat> {
                 }
                 break;
             } catch (WrongInputException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return transport;
@@ -159,8 +159,8 @@ public class FlatBuilder extends Builder<Flat> {
     public View createView(){
         View view;
         while (true) {
-            System.out.println("Введите, какой у квартиры вид из окна (перечень приведен ниже):");
-            System.out.println("""
+            Console.getInstance().printMessage("Введите, какой у квартиры вид из окна (перечень приведен ниже):");
+            Console.getInstance().printMessage("""
                     BAD - плохой вид из окна
                     NORMAL - неплохой вид из окна
                     STREET - вид на улицу
@@ -174,7 +174,7 @@ public class FlatBuilder extends Builder<Flat> {
                 }
                 break;
             } catch (WrongInputException e) {
-                System.out.println(e.getMessage());
+                Console.getInstance().printMessage(e.getMessage());
             }
         }
         return view;

@@ -2,6 +2,7 @@ package utility.handlers;
 
 import utility.auxiliary.ExecutionTask;
 import utility.auxiliary.SendingTask;
+import utility.auxiliary.Console;
 import utility.management.CommandExecutionManager;
 import utility.requests.MessageRequest;
 
@@ -25,7 +26,7 @@ public class RequestExecutor implements Runnable {
                     sendingTasks.put(new SendingTask((MessageRequest) task.request(), task.key()));
                 } else {
                     String message = commandManager.executeCommand(task.request());
-                    System.out.println("Обработано");
+                    Console.getInstance().printMessage("Обработано");
                     sendingTasks.put(new SendingTask(new MessageRequest(message), task.key()));
                 }
             } catch (InterruptedException e) {
