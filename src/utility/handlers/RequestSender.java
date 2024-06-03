@@ -29,7 +29,7 @@ public class RequestSender implements Runnable {
                     ByteBuffer buffer = ByteBuffer.wrap(serializedResponse);
                     client.write(buffer);
                     processedKeys.remove(task.key());
-                    Console.getInstance().printMessage("Послано");
+                    Console.getInstance().printMessage("Запрос обработан");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

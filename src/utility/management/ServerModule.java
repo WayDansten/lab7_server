@@ -65,22 +65,20 @@ public class ServerModule {
                 Iterator<SelectionKey> iter = selectedKeys.iterator();
                 while (iter.hasNext()) {
                     SelectionKey key = iter.next();
-                    if (key.isAcceptable()) {
-                        register(selector, serverSocket);
-                        Console.getInstance().printMessage("Клиент подключен");
+                    if (key.isValid()) {
+                        if (key.isAcceptable()) {
+                            register(selector, serverSocket);
+                            Console.getInstance().printMessage("Клиент подключен");
+                        }
+                        if (key.isReadable() && !readableKeys.contains(key)) {
+                            readableKeys.add(key);
+                        }
+                        iter.remove();
                     }
-                    if (key.isReadable() && !readableKeys.contains(key)) {
-                        readableKeys.add(key);
-                    }
-                    iter.remove();
                 }
-                for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-                    readPool.execute(new RequestReader(readableKeys, executionTasks, processedKeys));
-                }
+                readPool.execute(new RequestReader(readableKeys, executionTasks, processedKeys));
                 executionPool.execute(new RequestExecutor(executionTasks, sendingTasks, commandManager));
-                for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-                    sendPool.execute(new RequestSender(sendingTasks, processedKeys));
-                }
+                sendPool.execute(new RequestSender(sendingTasks, processedKeys));
                 if (handleAdminCommand()) {
                     break;
                 }

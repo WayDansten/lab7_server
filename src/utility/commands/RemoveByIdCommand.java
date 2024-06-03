@@ -26,6 +26,7 @@ public class RemoveByIdCommand extends Command {
         } catch (NumberFormatException e) {
             return "Недопустимый тип данных!";
         } catch (SQLException e) {
+            e.printStackTrace();
             return "Ошибка при удалении данных из БД!";
         }
     }

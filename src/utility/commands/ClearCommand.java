@@ -22,7 +22,7 @@ public class ClearCommand extends Command {
             cm.clearUser(deletedIDs);
             return "Коллекция успешно очищена!";
         } catch (SQLException e) {
-            return "Ошибка при удалении данных из БД!";
+            return e.getMessage();
         }
     }
 }

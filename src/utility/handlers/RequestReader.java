@@ -45,12 +45,10 @@ public class RequestReader implements Runnable {
                     try {
                         Request request;
                         try {
-                            Console.getInstance().printMessage(String.valueOf(r));
                             request = (Request) Serializer.deserialize(buffer.array());
                         } catch (ClassNotFoundException e) {
                             request = new MessageRequest("Несуществующая команда!");
                         }
-                         Console.getInstance().printMessage("Считано");
                         processedKeys.add(key);
                         executionTasks.put(new ExecutionTask(request, key));
                     } catch (InterruptedException e) {

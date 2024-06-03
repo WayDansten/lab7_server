@@ -26,7 +26,6 @@ public class RequestExecutor implements Runnable {
                     sendingTasks.put(new SendingTask((MessageRequest) task.request(), task.key()));
                 } else {
                     String message = commandManager.executeCommand(task.request());
-                    Console.getInstance().printMessage("Обработано");
                     sendingTasks.put(new SendingTask(new MessageRequest(message), task.key()));
                 }
             } catch (InterruptedException e) {

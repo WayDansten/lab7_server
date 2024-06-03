@@ -31,7 +31,7 @@ public class UpdateCommand extends Command {
         } catch (NumberFormatException e) {
             return "Недопустимый тип данных!";
         } catch (SQLException e) {
-            return "Ошибка при обновлении данных в БД!";
+            return e.getMessage();
         }
     }
 }

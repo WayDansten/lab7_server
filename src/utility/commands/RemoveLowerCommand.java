@@ -26,7 +26,7 @@ public class RemoveLowerCommand extends Command {
         } catch (NumberFormatException e) {
             return "Недопустимый тип данных!";
         } catch (SQLException e) {
-            return "Ошибка при удалении данных из БД!";
+            return e.getMessage();
         }
     }
 }

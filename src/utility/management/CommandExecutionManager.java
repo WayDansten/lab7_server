@@ -40,6 +40,7 @@ public class CommandExecutionManager {
             put("filter_contains_name", new FilterContainsNameCommand(cm));
             put("count_greater_than_house", new CountGreaterThanHouseCommand(cm));
             put("update", new UpdateCommand(cm));
+            put("authorize", new AuthorizationCommand(cm));
         }
     };
 
@@ -51,18 +52,10 @@ public class CommandExecutionManager {
     public String executeCommand(Request request){
         try {
             if (request instanceof AuthorizationRequest authRequest) {
-                if (authRequest.getRegistrationFlag()) {
-                    if (!ServerModule.getInstance().getUserData().containsKey(authRequest.extract()[0])) {
-                        ServerModule.getInstance().getUserData().put(authRequest.extract()[0], authRequest.extract()[1]);
-                        return "Авторизация успешна! Вы зарегистрировались.";
-                    }
-                    return "Пользователь с данным логином уже существует!";
-                } else if (ServerModule.getInstance().getUserData().containsKey(authRequest.extract()[0])) {
-                    if (ServerModule.getInstance().getUserData().get(authRequest.extract()[0]).equals(authRequest.extract()[1])) {
-                        return "Авторизация успешна! Вы вошли в систему.";
-                    }
-                }
-                return "Введен неверный пароль!";
+                    AuthorizationCommand authCommand = (AuthorizationCommand) commands.get("authorize");
+                    authCommand.setRegFlag(authRequest.getRegistrationFlag());
+                    authCommand.setUserData(authRequest.getUserData());
+                    return authCommand.execute();
             } else {
                 String[] args = request.extract();
                 Command command = commands.get(args[0].strip().toLowerCase());
