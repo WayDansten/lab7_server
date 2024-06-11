@@ -19,7 +19,7 @@ public class RequestExecutor implements Runnable {
     }
     @Override
     public void run() {
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted() && !executionTasks.isEmpty()) {
             try {
                 ExecutionTask task = executionTasks.take();
                 if (task.request() instanceof MessageRequest) {

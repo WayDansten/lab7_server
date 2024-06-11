@@ -89,26 +89,6 @@ public class ServerModule {
             Console.getInstance().printError("Драйвер не найден!");
         }
     }
-    private static Request receiveRequest(SelectionKey key) throws IOException, ClassNotFoundException {
-        SocketChannel client = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(9192);
-        int r;
-        try {
-            r = client.read(buffer);
-        } catch (IOException e) {
-            client.close();
-            Console.getInstance().printMessage("Соединение с клиентом окончено");
-            return null;
-        }
-        if (r == -1) {
-            client.close();
-            Console.getInstance().printMessage("Соединение с клиентом окончено");
-            return null;
-        }
-        else {
-            return (Request) Serializer.deserialize(buffer.array());
-        }
-    }
 
     private static void register(Selector selector, ServerSocketChannel serverSocket)
             throws IOException {
